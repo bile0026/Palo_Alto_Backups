@@ -1,0 +1,109 @@
+---
+- name: Pull Configuration from Palo Alto Firewalls
+  hosts: ALL
+  gather_facts: false
+  vars_files:
+    - palo_vars.yml
+
+  tasks:
+    - name: Generate API Key
+      connection: local
+      check_mode: false
+      uri:
+        validate_certs: false
+        url: 'https://{{ inventory_hostname }}/api/?type=keygen&user={{ ansible_ssh_user }}&password={{ ansible_ssh_pass }}'
+        return_content: true
+        method: GET
+      register: key_string
+
+    - name: Extract API Key from XML Output
+      connection: local
+      xml:
+        xmlstring: '{{ key_string.content }}'
+        content: 'text'
+        xpath: '/response/result/key'
+      register: key_list
+
+    - name: Backup configuration from PAN Equipement
+      connection: local
+      check_mode: false
+      uri:
+        validate_certs: false
+        url: "https://{{ inventory_hostname }}/api/?type=config&action=show&key={{ key_list.matches[0].key }}"
+        return_content: true
+        method: GET
+      register: configuration_string
+
+    - name: Check to see if {{ current_date }} directory exists
+      stat:
+        path: "{{ configs_dir }}"
+      register: folder_check
+      run_once: true
+      delegate_to: localhost
+
+    - name: Create {{ current_date }} folder when it does not exist
+      file:
+        path: "{{ configs_dir }}"
+        state: directory
+        mode: 0777
+        group: ansible
+        owner: ansible
+      run_once: true
+      when: folder_check.stat.exists == false
+      delegate_to: localhost
+
+    - name: Remove XML Header and Save file in {{ configs_dir }}
+      connection: local
+      check_mode: false
+      copy:
+        content: "{{ configuration_string['content']  | regex_replace('<response.*<result>') | regex_replace('</result></response>') }}"
+        dest: '{{ configs_dir }}/{{ inventory_hostname }}_{{ current_date }}'
+
+    - name: Cleanup configs
+      shell: "sed -i {{ item }} {{ current_config }}"
+      with_items: "{{ sed_commands }}"
+      delegate_to: localhost
+      when: (sed_commands is defined) and (sed_commands | length > 0)
+      tags:
+        - cleanup
+
+    - name: Check for Diffs
+      shell: diff -B {{ current_config }} {{ yesterday_config }}
+      failed_when: diff_result.rc > 1
+      register: diff_result
+      delegate_to: localhost
+      ignore_errors: true
+      tags:
+        - diffs
+
+    - name: Make diff report files
+      shell: vimdiff {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! /tmp/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
+      failed_when: "diff_output.rc > 1"
+      delegate_to: localhost
+      register: diff_output
+      when: diff_result.rc == 1
+      notify: email diffs
+      async: 120
+      poll: 30
+      tags:
+        - reports
+
+  handlers:
+    - name: email diffs
+      mail:
+        from: ansible@example.com
+        to:
+          - email@example.com
+        subject: Diff report for {{ inventory_hostname }}
+        subtype: html
+        host: mailhub.cliffsnet.com
+        attach: /tmp/{{ inventory_hostname }}_{{ current_date }}.html
+      delegate_to: localhost
+      when: diff_result.rc != 0
+
+    - name: remove temp files
+      file:
+        state: absent
+        path: "/tmp/{{ inventory_hostname }}_{{ current_date }}.html"
+      delegate_to: localhost
+      listen: email diffs
