@@ -8,6 +8,10 @@ ansible_ssh_pass: XXXXXXXX
 current_config_dir: /ansible_backups/{{ platform }}/{{ current_date }}
 current_config: /ansible_backups/{{ platform }}/{{ current_date }}/{{ inventory_hostname }}_{{ current_date }}
 yesterday_config: /ansible_backups/{{ platform }}/{{ yesterday_date }}/{{ inventory_hostname }}_{{ yesterday_date }}
+smtp_server: smtp.example.com
+email_addresses:
+  - email@example.com
+
 
 # uncomment, and add additional sed commands to cleanup configs if necessary
 #sed_commands:
