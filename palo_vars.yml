@@ -11,6 +11,7 @@ yesterday_config: /ansible_backups/{{ platform }}/{{ yesterday_date }}/{{ invent
 # smtp_server: smtp.example.com
 # email_addresses:
   # - email@example.com
+# from_email: email@example.com
 
 
 # uncomment, and add additional sed commands to cleanup configs if necessary
