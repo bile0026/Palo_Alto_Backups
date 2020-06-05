@@ -45,9 +45,7 @@
       file:
         path: "{{ configs_dir }}"
         state: directory
-        mode: 0777
-        group: ansible
-        owner: ansible
+        mode: 0755
       run_once: true
       when: folder_check.stat.exists == false
       delegate_to: localhost
