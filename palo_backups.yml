@@ -97,7 +97,7 @@
         - diffs
 
     - name: Make diff report files
-      shell: vimdiff {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! /tmp/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
+      shell: vimdiff {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
       failed_when: "diff_output.rc > 1"
       delegate_to: localhost
       register: diff_output
@@ -120,9 +120,9 @@
       delegate_to: localhost
       when: diff_result.rc != 0
 
-    - name: remove temp files
-      file:
-        state: absent
-        path: "/tmp/{{ inventory_hostname }}_{{ current_date }}.html"
-      delegate_to: localhost
-      listen: email diffs
+    # - name: remove temp files
+    #   file:
+    #     state: absent
+    #     path: "/tmp/{{ inventory_hostname }}_{{ current_date }}.html"
+    #   delegate_to: localhost
+    #   listen: email diffs
