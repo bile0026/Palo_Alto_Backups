@@ -66,7 +66,7 @@
       check_mode: false
       copy:
         content: "{{ configuration_string['content']  | regex_replace('<response.*<result>') | regex_replace('</result></response>') }}"
-        dest: '{{ configs_dir }}/{{ inventory_hostname }}_{{ current_date }}'
+        dest: '{{ current_config }}'
 
     - name: Cleanup configs
       shell: "sed -i {{ item }} {{ current_config }}"
