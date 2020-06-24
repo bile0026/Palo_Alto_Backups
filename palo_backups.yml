@@ -7,7 +7,7 @@
 
   tasks:
     - name: Ping for reachability
-      command: ping -c1 {{ inventory_hostname }}
+      command: ping -c1 {{ ansible_hostname }}
       delegate_to: localhost
       register: ping_result
       ignore_errors: true
@@ -28,7 +28,7 @@
       check_mode: false
       uri:
         validate_certs: false
-        url: 'https://{{ inventory_hostname }}/api/?type=keygen&user={{ ansible_ssh_user }}&password={{ ansible_ssh_pass }}'
+        url: 'https://{{ ansible_hostname }}/api/?type=keygen&user={{ ansible_ssh_user }}&password={{ ansible_ssh_pass }}'
         return_content: true
         method: GET
       register: key_string
@@ -46,7 +46,7 @@
       check_mode: false
       uri:
         validate_certs: false
-        url: "https://{{ inventory_hostname }}/api/?type=config&action=show&key={{ key_list.matches[0].key }}"
+        url: "https://{{ ansible_hostname }}/api/?type=config&action=show&key={{ key_list.matches[0].key }}"
         return_content: true
         method: GET
       register: configuration_string
@@ -94,7 +94,7 @@
         - diffs
 
     - name: Make diff report files
-      shell: vimdiff {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
+      shell: vimdiff {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ ansible_hostname }}_{{ current_date }}.html' -c 'qa!'
       failed_when: "diff_output.rc > 1"
       delegate_to: localhost
       register: diff_output
@@ -110,9 +110,9 @@
       mail:
         from: "{{ from_email }}"
         to: "{{ email_addresses }}"
-        subject: Diff report for {{ inventory_hostname }}
+        subject: Diff report for {{ ansible_hostname }}
         subtype: html
         host: "{{ smtp_server }}"
-        attach: /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
+        attach: /{{ diff_directory }}/{{ ansible_hostname }}_{{ current_date }}.html
       delegate_to: localhost
       when: diff_result.rc != 0
