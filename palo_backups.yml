@@ -51,6 +51,13 @@
         method: GET
       register: configuration_string
 
+    - name: Ensure vim is installed for diff output
+      package:
+        name: vim
+        state: present
+      delegate_to: localhost
+      run_once: true
+
     - name: Create {{ current_date }} folder when it does not exist
       file:
         path: "{{ item }}"
