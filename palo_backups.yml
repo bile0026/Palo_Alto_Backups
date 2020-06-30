@@ -77,7 +77,7 @@
         dest: '{{ current_config }}'
 
     - name: Cleanup configs
-      shell: "sed -i {{ item }} {{ current_config }}"
+      shell: "sed -i -r {{ item }} {{ current_config }}"
       with_items: "{{ sed_commands }}"
       delegate_to: localhost
       when: (sed_commands is defined) and (sed_commands | length > 0)
@@ -101,7 +101,7 @@
         - diffs
 
     - name: Make diff report files
-      shell: vimdiff -n {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ ansible_host }}_{{ current_date }}.html' -c 'qa!'
+      shell: vimdiff -n {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
       failed_when: "diff_output.rc > 1"
       delegate_to: localhost
       register: diff_output
@@ -119,9 +119,9 @@
       mail:
         from: "{{ from_email }}"
         to: "{{ email_addresses }}"
-        subject: Diff report for {{ ansible_host }}
+        subject: Diff report for {{ inventory_hostname }}
         subtype: html
         host: "{{ smtp_server }}"
-        attach: /{{ diff_directory }}/{{ ansible_host }}_{{ current_date }}.html
+        attach: /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
       delegate_to: localhost
       when: diff_result.rc != 0
