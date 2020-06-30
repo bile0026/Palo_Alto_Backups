@@ -28,7 +28,7 @@
       check_mode: false
       uri:
         validate_certs: false
-        url: 'https://{{ ansible_host }}/api/?type=keygen&user={{ ansible_ssh_user }}&password={{ ansible_ssh_pass }}'
+        url: 'https://{{ ansible_host }}/api/?type=keygen&user={{ palo_username }}&password={{ palo_password }}'
         return_content: true
         method: GET
       register: key_string
