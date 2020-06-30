@@ -125,4 +125,7 @@
         host: "{{ smtp_server }}"
         attach: /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
       delegate_to: localhost
-      when: diff_result.rc != 0
+      when:
+        - diff_result.rc != 0
+        - smtp_server is defined
+
