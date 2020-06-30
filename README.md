@@ -5,7 +5,7 @@ Saves the configs in backup location defined in ```configs_dir``` in the palo_va
 
 Need to update SSH credentials in palo_vars.yml.
 
-If using AWX/Tower, create a custom credential type as follows. You can then create your credential object using the custom credential type, and fill in your username/password, which will be injected into the API calls. 
+If using AWX/Tower, create a custom credential type as follows. You can then create your credential object using the custom credential type, and fill in your username/password, which will be injected into the API calls.
 
 Name: Whatever you want
 Description: Whatever makes sense
