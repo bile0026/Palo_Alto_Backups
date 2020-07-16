@@ -23,6 +23,22 @@
     - palo_vars.yml
 
   tasks:
+    - name: Install lxml
+      package:
+        name: python3-lxml
+        state: present
+      delegate_to: localhost
+      become: true
+      run_once: true
+
+    - name: Ensure vim is installed for diff output
+      package:
+        name: vim
+        state: present
+      delegate_to: localhost
+      become: true
+      run_once: true
+
     - name: Generate API Key
       connection: local
       check_mode: false
@@ -50,13 +66,6 @@
         return_content: true
         method: GET
       register: configuration_string
-
-    - name: Ensure vim is installed for diff output
-      package:
-        name: vim
-        state: present
-      delegate_to: localhost
-      run_once: true
 
     - name: Create {{ current_date }} folder when it does not exist
       file:
