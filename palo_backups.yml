@@ -23,17 +23,12 @@
     - palo_vars.yml
 
   tasks:
-    - name: Install lxml
+    - name: Ensure dependency packages are available.
       package:
-        name: python3-lxml
-        state: present
-      delegate_to: localhost
-      become: true
-      run_once: true
-
-    - name: Ensure vim is installed for diff output
-      package:
-        name: vim
+        name:
+          - vim
+          - diffutils
+          - python3-lxml
         state: present
       delegate_to: localhost
       become: true
