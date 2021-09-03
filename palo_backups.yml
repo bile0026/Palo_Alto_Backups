@@ -39,17 +39,18 @@
       check_mode: false
       uri:
         validate_certs: false
-        url: 'https://{{ ansible_host }}/api/?type=keygen&user={{ palo_username }}&password={{ palo_password }}'
+        url: "https://{{ ansible_host }}/api/?type=keygen&user={{ palo_username }}&password={{ palo_password }}"
         return_content: true
         method: GET
       register: key_string
+      no_log: "{{ task_logging }}"
 
     - name: Extract API Key from XML Output
       connection: local
       xml:
-        xmlstring: '{{ key_string.content }}'
-        content: 'text'
-        xpath: '/response/result/key'
+        xmlstring: "{{ key_string.content }}"
+        content: "text"
+        xpath: "/response/result/key"
       register: key_list
 
     - name: Backup configuration from PAN Equipement
@@ -78,7 +79,7 @@
       check_mode: false
       copy:
         content: "{{ configuration_string['content']  | regex_replace('<response.*<result>') | regex_replace('</result></response>') }}"
-        dest: '{{ current_config }}'
+        dest: "{{ current_config }}"
 
     - name: Cleanup configs
       shell: "sed -i -r {{ item }} {{ current_config }}"
@@ -132,4 +133,3 @@
       when:
         - diff_result.rc != 0
         - smtp_server is defined
-
