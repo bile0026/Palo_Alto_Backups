@@ -1,6 +1,6 @@
 ---
-# enable or disable logging of task output. ***Enabling this will expose your passwords in the logs***
-task_logging: false
+# enable or disable logging of task output. True=="don't log" ***Enabling this will expose your passwords in the logs***
+task_logging: true
 
 platform: "palo_alto"
 current_date: "{{ lookup('pipe','date +%Y-%m-%d') }}"
