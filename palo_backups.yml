@@ -23,16 +23,16 @@
     - palo_vars.yml
 
   tasks:
-    - name: Ensure dependency packages are available.
-      package:
-        name:
-          - vim
-          - diffutils
-          - python3-lxml
-        state: present
-      delegate_to: localhost
-      become: true
-      run_once: true
+    # - name: Ensure dependency packages are available.
+    #   package:
+    #     name:
+    #       - vim
+    #       - diffutils
+    #       - python3-lxml
+    #     state: present
+    #   delegate_to: localhost
+    #   become: true
+    #   run_once: true
 
     - name: Generate API Key
       connection: local
