@@ -81,6 +81,11 @@
         content: "{{ configuration_string['content']  | regex_replace('<response.*<result>') | regex_replace('</result></response>') }}"
         dest: "{{ current_config }}"
 
+    - name: Convert XML to Set format
+      connection: local
+      shell: panconf.py --config {{ current_config }} --set > {{ current_config_set }}
+      when: create_set
+
     - name: Cleanup configs
       shell: "sed -i -r {{ item }} {{ current_config }}"
       with_items: "{{ sed_commands }}"
@@ -89,13 +94,19 @@
       tags:
         - cleanup
 
-    - name: Check if yesterday's configuration exists
+    - name: Check if yesterday's XML configuration exists
       stat:
         path: "{{ yesterday_config }}"
       register: check_result
       delegate_to: localhost
 
-    - name: Check for Diffs
+    - name: Check if yesterday's SET configuration exists
+      stat:
+        path: "{{ yesterday_config_set }}"
+      register: check_set_result
+      delegate_to: localhost
+
+    - name: Check for XML Diffs
       shell: diff -B {{ current_config }} {{ yesterday_config }}
       failed_when: diff_result.rc > 1
       register: diff_result
@@ -106,7 +117,18 @@
       tags:
         - diffs
 
-    - name: Make diff report files
+    - name: Check for set Diffs
+      shell: diff -B {{ current_config_set }} {{ yesterday_config_set }}
+      failed_when: diff_result.rc > 1
+      register: diff_set_result
+      delegate_to: localhost
+      ignore_errors: true
+      changed_when: diff_result.rc == 1
+      when: check_set_result.stat.exists
+      tags:
+        - diffs
+
+    - name: Make XML diff report files
       shell: vimdiff -n {{ yesterday_config }} {{ current_config }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html' -c 'qa!'
       failed_when: "diff_output.rc > 1"
       delegate_to: localhost
@@ -114,6 +136,20 @@
       when:
         - check_result.stat.exists
         - diff_result.rc == 1
+      notify: email diffs
+      async: 120
+      poll: 30
+      tags:
+        - reports
+
+    - name: Make SET diff report files
+      shell: vimdiff -n {{ yesterday_config_set }} {{ current_config_set }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}_set.html' -c 'qa!'
+      failed_when: "diff_output.rc > 1"
+      delegate_to: localhost
+      register: diff_set_output
+      when:
+        - check_set_result.stat.exists
+        - diff_set_result.rc == 1
       notify: email diffs
       async: 120
       poll: 30
@@ -128,8 +164,26 @@
         subject: Diff report for {{ inventory_hostname }}
         subtype: html
         host: "{{ smtp_server }}"
-        attach: /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
+        attach:
+          - /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
       delegate_to: localhost
       when:
+        - create_set is false
+        - diff_result.rc != 0
+        - smtp_server is defined
+
+    - name: email diffs
+      mail:
+        from: "{{ from_email }}"
+        to: "{{ email_addresses }}"
+        subject: Diff report for {{ inventory_hostname }}
+        subtype: html
+        host: "{{ smtp_server }}"
+        attach:
+          - /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
+          - /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}_set.html
+      delegate_to: localhost
+      when:
+        - create_set
         - diff_result.rc != 0
         - smtp_server is defined
