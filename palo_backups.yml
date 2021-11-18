@@ -105,6 +105,7 @@
         path: "{{ yesterday_config_set }}"
       register: check_set_result
       delegate_to: localhost
+      when: create_set
 
     - name: Check for XML Diffs
       shell: diff -B {{ current_config }} {{ yesterday_config }}
@@ -123,8 +124,10 @@
       register: diff_set_result
       delegate_to: localhost
       ignore_errors: true
-      changed_when: diff_result.rc == 1
-      when: check_set_result.stat.exists
+      changed_when: diff_set_result.rc == 1
+      when:
+        - create_set
+        - check_set_result.stat.exists
       tags:
         - diffs
 
@@ -148,9 +151,10 @@
       delegate_to: localhost
       register: diff_set_output
       when:
+        - create_set
         - check_set_result.stat.exists
         - diff_set_result.rc == 1
-      notify: email diffs
+      notify: email diffs set
       async: 120
       poll: 30
       tags:
@@ -172,7 +176,7 @@
         - diff_result.rc != 0
         - smtp_server is defined
 
-    - name: email diffs
+    - name: email diffs set
       mail:
         from: "{{ from_email }}"
         to: "{{ email_addresses }}"
