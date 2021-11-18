@@ -2,6 +2,9 @@
 # enable or disable logging of task output. True=="don't log" ***Enabling this will expose your passwords in the logs***
 task_logging: true
 
+# save backups in set format as well as xml
+create_set: true
+
 platform: "palo_alto"
 current_date: "{{ lookup('pipe','date +%Y-%m-%d') }}"
 yesterday_date: "{{ lookup('pipe','date +%Y-%m-%d --date=yesterday' ) }}"
@@ -10,7 +13,9 @@ configs_dir: /ansible_backups/{{ platform }}/{{ current_date }}
 # palo_password:
 current_config_dir: /ansible_backups/{{ platform }}/{{ current_date }}
 current_config: /ansible_backups/{{ platform }}/{{ current_date }}/{{ inventory_hostname }}_{{ current_date }}.txt
+current_config_set: /ansible_backups/{{ platform }}/{{ current_date }}/{{ inventory_hostname }}_{{ current_date }}_set.txt
 yesterday_config: /ansible_backups/{{ platform }}/{{ yesterday_date }}/{{ inventory_hostname }}_{{ yesterday_date }}.txt
+yesterday_config_set: /ansible_backups/{{ platform }}/{{ yesterday_date }}/{{ inventory_hostname }}_{{ yesterday_date }}_set.txt
 diff_directory: /ansible_backups/{{ platform }}_diffs/{{ current_date }}
 # smtp_server: smtp.example.com
 # email_addresses:
