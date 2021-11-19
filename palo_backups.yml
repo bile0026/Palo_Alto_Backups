@@ -147,7 +147,7 @@
 
     - name: Make SET diff report files
       shell: vimdiff -n {{ yesterday_config_set }} {{ current_config_set }} -c TOhtml  -c 'w! {{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}_set.html' -c 'qa!'
-      failed_when: "diff_output.rc > 1"
+      failed_when: "diff_set_output.rc > 1"
       delegate_to: localhost
       register: diff_set_output
       when:
