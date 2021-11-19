@@ -172,7 +172,6 @@
           - /{{ diff_directory }}/{{ inventory_hostname }}_{{ current_date }}.html
       delegate_to: localhost
       when:
-        - create_set is false
         - diff_result.rc != 0
         - smtp_server is defined
 
