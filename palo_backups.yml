@@ -114,7 +114,9 @@
       delegate_to: localhost
       ignore_errors: true
       changed_when: diff_result.rc == 1
-      when: check_result.stat.exists
+      when:
+        - create_diffs
+        - check_result.stat.exists
       tags:
         - diffs
 
@@ -126,7 +128,7 @@
       ignore_errors: true
       changed_when: diff_set_result.rc == 1
       when:
-        - create_set
+        - create_set_diffs
         - check_set_result.stat.exists
       tags:
         - diffs
@@ -137,6 +139,7 @@
       delegate_to: localhost
       register: diff_output
       when:
+        - create_diffs
         - check_result.stat.exists
         - diff_result.rc == 1
       notify: email diffs
@@ -151,7 +154,7 @@
       delegate_to: localhost
       register: diff_set_output
       when:
-        - create_set
+        - create_set_diffs
         - check_set_result.stat.exists
         - diff_set_result.rc == 1
       notify: email diffs set

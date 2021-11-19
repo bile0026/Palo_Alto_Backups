@@ -4,6 +4,10 @@ task_logging: true
 
 # save backups in set format as well as xml
 create_set: true
+create_set_diffs: true
+
+# whether to create XML diff files
+create_diffs: true
 
 platform: "palo_alto"
 current_date: "{{ lookup('pipe','date +%Y-%m-%d') }}"
